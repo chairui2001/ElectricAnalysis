@@ -12,6 +12,10 @@ import Field from './Field';
 import WaterWave from './WaterWave';
 import TagCloud from './TagCloud';
 import TimelineChart from './TimelineChart';
+import Map from './Map';
+import Line from './Line';
+import Comb from './Comb';
+import Funnel from './Funnel';
 
 const yuan = val => `¥ ${numeral(val).format('0,0')}`;
 
@@ -29,6 +33,10 @@ const Charts = {
   WaterWave,
   TagCloud,
   TimelineChart,
+  Map,
+  Line,
+  Comb,
+  Funnel,
 };
 
 export {
@@ -46,4 +54,8 @@ export {
   WaterWave,
   TagCloud,
   TimelineChart,
+  Map,
+  Line,
+  Comb,
+  Funnel,
 };

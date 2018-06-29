@@ -73,7 +73,7 @@ export const getRouterData = app => {
       component: dynamicWrapper(app, ['user', 'login'], () => import('../layouts/BasicLayout')),
     },
     '/big-screen': {
-      component: dynamicWrapper(app, ['chart'], () => import('../routes/BigScreen')),
+      component: dynamicWrapper(app, ['bigscreen'], () => import('../routes/BigScreen')),
     },
     '/dashboard/analysis': {
       component: dynamicWrapper(app, ['chart'], () => import('../routes/Dashboard/Analysis')),
@@ -89,7 +89,7 @@ export const getRouterData = app => {
       // name: '工作台',
       // authority: 'admin',
     },
-    '/form/basic-form': {
+    /* '/form/basic-form': {
       component: dynamicWrapper(app, ['form'], () => import('../routes/Forms/BasicForm')),
     },
     '/form/step-form': {
@@ -106,7 +106,7 @@ export const getRouterData = app => {
     '/form/step-form/result': {
       name: '分步表单（完成）',
       component: dynamicWrapper(app, ['form'], () => import('../routes/Forms/StepForm/Step3')),
-    },
+    }, */
     '/form/advanced-form': {
       component: dynamicWrapper(app, ['form'], () => import('../routes/Forms/AdvancedForm')),
     },
@@ -116,7 +116,7 @@ export const getRouterData = app => {
     '/list/basic-list': {
       component: dynamicWrapper(app, ['list'], () => import('../routes/List/BasicList')),
     },
-    '/list/card-list': {
+    /* '/list/card-list': {
       component: dynamicWrapper(app, ['list'], () => import('../routes/List/CardList')),
     },
     '/list/search': {
@@ -130,11 +130,11 @@ export const getRouterData = app => {
     },
     '/list/search/articles': {
       component: dynamicWrapper(app, ['list'], () => import('../routes/List/Articles')),
-    },
+    }, */
     '/profile/basic': {
       component: dynamicWrapper(app, ['profile'], () => import('../routes/Profile/BasicProfile')),
     },
-    '/profile/advanced': {
+    /* '/profile/advanced': {
       component: dynamicWrapper(app, ['profile'], () =>
         import('../routes/Profile/AdvancedProfile')
       ),
@@ -144,7 +144,7 @@ export const getRouterData = app => {
     },
     '/result/fail': {
       component: dynamicWrapper(app, [], () => import('../routes/Result/Error')),
-    },
+    }, */
     '/exception/403': {
       component: dynamicWrapper(app, [], () => import('../routes/Exception/403')),
     },

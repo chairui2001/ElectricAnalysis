@@ -1,161 +1,182 @@
-import React, { PureComponent, Fragment } from 'react';
+import React, { PureComponent } from 'react';
 import { connect } from 'dva';
-/* import { connect } from 'dva';
-import { Row, Col, Card, Tooltip } from 'antd';
-import numeral from 'numeral';
-import { Pie, WaterWave, Gauge, TagCloud } from 'components/Charts';
-import NumberInfo from 'components/NumberInfo';
-import CountDown from 'components/CountDown';
-import ActiveChart from 'components/ActiveChart';
-import Authorized from '../../utils/Authorized'; */
-import { Row, Col } from 'antd';
-import {
-  ChartCard,
-  yuan,
-  MiniArea,
-  MiniProgress,
-  Field,
-  Bar,
-  Pie,
-  TimelineChart,
-} from 'components/Charts';
+import { Row, Col, Button } from 'antd';
+import { ChartCard, Pie, Map, Line, Comb, Funnel } from 'components/Charts';
 import styles from './index.less';
-import { geodata_yunnan } from './mapData';
-import { Chart, Geom, Tooltip, Label, Guide } from 'bizcharts';
-import DataSet from '@antv/data-set';
-const { Text } = Guide;
+import { geodata } from './mapData';
+import { intoFullscreen, exitFullscreen } from '../../utils/fullscreen';
+import Bind from 'lodash-decorators/bind';
 
-/* const { Secured } = Authorized;
+const BizCharts = require('bizcharts');
 
-const targetTime = new Date().getTime() + 3900000;
-
-// use permission as a parameter
-const havePermissionAsync = new Promise(resolve => {
-  // Call resolve on behalf of passed
-  setTimeout(() => resolve(), 1000);
-});
-@Secured(havePermissionAsync)
-@connect(({ monitor, loading }) => ({
-  monitor,
-  loading: loading.models.monitor,
-})) */
-
-@connect(({ chart, loading }) => ({
-  chart,
-  loading: loading.effects['chart/fetch'],
+@connect(({ bigscreen, loading }) => ({
+  bigscreen,
+  loading: loading.effects['bigscreen/fetch'],
 }))
-
 export default class BigScreen extends PureComponent {
   state = {
-    width: 200,
-    height: 200,
-    name: '',
-    dv: ''
-  }
-  processData(geoJSON) {
-    const mapData = {
-    type: 'FeatureCollection',
-    features: geoJSON
-    };
-    // 构造虚拟数据
-    const userData = [];
-    for (let i = 0; i < geoJSON.length; i++) {
-    const name = geoJSON[i].properties.name;
-    userData.push({
-        name: name,
-        value: Math.round(Math.random() * 1000),
-    });
-    }
-    const ds = new DataSet();
-    const geoDataView = ds.createView().source(mapData, {
-    type: 'GeoJSON',
-    }); // geoJSON 经纬度数据
-
-    // 用户数据
-    const dvData = ds.createView().source(userData);
-    dvData.transform({
-    type: 'geo.region',
-    field: 'name',
-    geoDataView: geoDataView,
-    as: ['longitude', 'lantitude'],
-    });
-
-    return dvData;
-  }
-
-  renderG2Map(){
-    const geoJSON = geodata_yunnan; // 获取 geoJSON 数据
-
-    const dv = this.processData(geoJSON);
-    // start: 计算地图的最佳宽高
-    const longitudeRange = dv.range('longitude');
-    const lantitudeRange = dv.range('lantitude');
-    const ratio = (longitudeRange[1] - longitudeRange[0]) / (lantitudeRange[1] - lantitudeRange[0]);
-    let width;
-    let height;
-    if (ratio > 1) {
-      width = 1100;
-      height = width / ratio;
-    } else {
-      height = 900;
-      width = height * ratio;
-    }
-    // end: 计算地图的最佳宽高
-    this.setState({width,height,name,dv});
-  }
+    isFullscreen: false,
+    sH: 150,
+    bH: 200,
+  };
 
   componentDidMount() {
     this.props.dispatch({
-      type: 'chart/fetch',
+      type: 'bigscreen/fetch',
     });
-    
-    this.renderG2Map();
+
+    // 用来监听 ESC F11 等方式触发
+    document.addEventListener('fullscreenchange', this.onFullscreenchange);
+    document.addEventListener('webkitfullscreenchange', this.onFullscreenchange);
+    document.addEventListener('mozfullscreenchange', this.onFullscreenchange);
+    document.addEventListener('MSFullscreenChange', this.onFullscreenchange);
+  }
+
+  componentWillUnmount() {
+    const { dispatch } = this.props;
+    dispatch({
+      type: 'bigscreen/clear',
+    });
+
+    document.removeEventListener('fullscreenchange', this.onFullscreenchange);
+    document.removeEventListener('webkitfullscreenchange', this.onFullscreenchange);
+    document.removeEventListener('mozfullscreenchange', this.onFullscreenchange);
+    document.removeEventListener('MSFullscreenChange', this.onFullscreenchange);
+
+    BizCharts.setTheme('default');
+  }
+
+  @Bind()
+  onFullscreenchange(e) {
+    const { isFullscreen } = this.state;
+    const H = window.screen.height - 42 - 14 - 20 - 20;
+    const chartDiffH = 20 + 8 + 34;
+
+    BizCharts.setTheme(isFullscreen ? 'default' : 'dark');
+
+    this.setState({
+      isFullscreen: !isFullscreen,
+      sH: isFullscreen ? 150 : H * 0.3 - chartDiffH,
+      bH: isFullscreen ? 200 : H * 0.4 - chartDiffH,
+    });
+  }
+
+  @Bind()
+  onPolygonClick(e) {
+    console.log(e.data._origin.name);
+
+    this.props.dispatch({
+      type: 'bigscreen/fetch',
+    });
   }
 
   render() {
-    const { height, width, name, dv } = this.state;
-    const { chart, loading } = this.props;
-    const {
-      salesData
-    } = chart;
+    const { isFullscreen, sH, bH } = this.state;
+    const { bigscreen, loading } = this.props;
+    const { tradeData, userData, greenData, cpiData, priceData, trendData } = bigscreen;
+
+    const gutter = 10;
+    const mapH = sH * 2 + gutter + 64 + 64;
 
     return (
-      <Row>
-        <Col><Bar height={295} title="销售额趋势" data={salesData} /></Col>
-        <Col>
-          <Chart height={height} width={width} data={dv} padding={0}>
-            <Tooltip showTitle={false} />
-            <Geom
-              type='polygon'
-              position='longitude*lantitude'
-              select={{
-                // 设置是否允许选中以及选中样式
-                mode: 'single', // 多选还是单选
-                style: {
-                  fill: '#1890ff', // 选中的样式
-                },
-              }}
-              tooltip='name'
-              style={{stroke: '#fff',lineWidth: 1}}
-              color={['value', '#BAE7FF-#1890FF-#0050B3']}
-              >
-              <Label content='name' textStyle= {{
-                fill: '#fff',
-                fontSize: 10,
-                shadowBlur: 2,
-                shadowColor: 'rgba(0, 0, 0, .45)'
-                }} />
-              </Geom>
-              <Guide>
-                <Text
-                  offsetY={20}
-                  content={name}
-                  position={[ 'min', 'max']}
-                  style={{fontSize: 14,fontWeight: 'bold'}} />
-              </Guide>
-          </Chart>
-        </Col>
-      </Row>
+      <div className="bigscreen" ref={bigscreenDom => (this.bigscreenDom = bigscreenDom)}>
+        <h1>
+          用电数据一览
+          <Button
+            shape="circle"
+            icon={isFullscreen ? 'shrink' : 'arrows-alt'}
+            className={styles.fullscreenBtn}
+            onClick={() => {
+              isFullscreen ? exitFullscreen() : intoFullscreen(this.bigscreenDom);
+            }}
+          />
+        </h1>
+
+        <Row gutter={gutter}>
+          <Col md={7}>
+            <ChartCard title="交易量价" loading={loading}>
+              <Comb
+                height={sH}
+                data={tradeData}
+                titleMap={{
+                  y1: '交易量',
+                  y2: '价格',
+                }}
+              />
+            </ChartCard>
+            <ChartCard title="用户数" loading={loading} style={{ marginTop: gutter }}>
+              <Funnel height={sH} data={userData} />
+            </ChartCard>
+          </Col>
+          <Col md={10}>
+            {/* <ChartCard title="云南地图" loading={loading}> */}
+            <Map height={mapH} geodata={geodata} onPolygonClick={this.onPolygonClick} />
+            {/* </ChartCard> */}
+          </Col>
+          <Col md={7}>
+            <ChartCard title="绿色能源占比" loading={loading}>
+              <Pie inner={0} data={greenData} height={sH} lineWidth={4} />
+            </ChartCard>
+            <ChartCard title="CPI/GDP/PMI" loading={loading} style={{ marginTop: gutter }}>
+              {cpiData.length > 0 && (
+                <Line
+                  height={sH}
+                  data={cpiData}
+                  titleMap={{
+                    y1: 'CPI',
+                    y2: 'GDP',
+                    y3: 'PMI',
+                  }}
+                />
+              )}
+            </ChartCard>
+          </Col>
+        </Row>
+        <Row gutter={gutter} style={{ marginTop: gutter }}>
+          <Col md={8}>
+            <ChartCard title="行业价格和成本" loading={loading}>
+              <Comb
+                height={bH}
+                data={priceData}
+                titleMap={{
+                  y1: '价格',
+                  y2: '成本',
+                }}
+                typeMap={{
+                  y1: 'area',
+                  y2: 'area',
+                }}
+              />
+            </ChartCard>
+          </Col>
+          <Col md={4}>
+            <ChartCard title="电解铝" loading={loading}>
+              <Pie animate={false} percent={28} total="28%" height={bH} lineWidth={2} />
+            </ChartCard>
+          </Col>
+          <Col md={4}>
+            <ChartCard title="电解硅" loading={loading}>
+              <Pie animate={false} percent={21} total="21%" height={bH} lineWidth={2} />
+            </ChartCard>
+          </Col>
+          <Col md={8}>
+            <ChartCard title="主要能源价格走势" loading={loading}>
+              <Comb
+                height={bH}
+                data={trendData}
+                titleMap={{
+                  y1: '煤炭',
+                  y2: '石油',
+                }}
+                typeMap={{
+                  y1: 'line',
+                  y2: 'area',
+                }}
+              />
+            </ChartCard>
+          </Col>
+        </Row>
+      </div>
     );
   }
 }

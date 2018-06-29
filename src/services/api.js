@@ -44,6 +44,10 @@ export async function fakeChartData() {
   return request('/api/fake_chart_data');
 }
 
+export async function bigscreenData() {
+  return request('/api/bigscreen_data');
+}
+
 export async function queryTags() {
   return request('/api/tags');
 }
