@@ -7,7 +7,7 @@ import { geodata } from './mapData';
 import { intoFullscreen, exitFullscreen } from '../../utils/fullscreen';
 import Bind from 'lodash-decorators/bind';
 
-const BizCharts = require('bizcharts');
+// const BizCharts = require('bizcharts');
 
 @connect(({ bigscreen, loading }) => ({
   bigscreen,
@@ -43,7 +43,7 @@ export default class BigScreen extends PureComponent {
     document.removeEventListener('mozfullscreenchange', this.onFullscreenchange);
     document.removeEventListener('MSFullscreenChange', this.onFullscreenchange);
 
-    BizCharts.setTheme('default');
+    // BizCharts.setTheme('default');
   }
 
   @Bind()
@@ -52,7 +52,7 @@ export default class BigScreen extends PureComponent {
     const H = window.screen.height - 42 - 14 - 20 - 20;
     const chartDiffH = 20 + 8 + 34;
 
-    BizCharts.setTheme(isFullscreen ? 'default' : 'dark');
+    // BizCharts.setTheme(isFullscreen ? 'default' : 'dark');
 
     this.setState({
       isFullscreen: !isFullscreen,
